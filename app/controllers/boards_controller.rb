@@ -29,8 +29,14 @@ class BoardsController < ApplicationController
   end
 
   def update
-    @board.update(board_params)
-    redirect_to board_path(@board.id)
+    if @board.update(board_params)
+      flash[:notice] = "編集しました"
+      redirect_to board_path(@board.id)
+    else
+      flash[:error_messages] = @board.errors.full_messages
+      flash[:board] = @board
+      redirect_to edit_board_path(flash[:board])
+    end
   end
 
   def destroy
