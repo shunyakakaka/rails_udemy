@@ -2,7 +2,8 @@ class BoardsController < ApplicationController
   before_action :set_target_board, only: [:show, :edit, :update, :destroy]
 
   def index
-    @boards = Board.page(params[:page])
+    @boards = params[:tag_id].present? ? Tag.find(params[:tag_id]).boards : Board.all
+    @boards = @boards.page(params[:page])
   end
 
   def new
@@ -29,8 +30,14 @@ class BoardsController < ApplicationController
   end
 
   def update
-    @board.update(board_params)
-    redirect_to board_path(@board.id)
+    if @board.update(board_params)
+      flash[:notice] = "編集しました"
+      redirect_to board_path(@board.id)
+    else
+      flash[:error_messages] = @board.errors.full_messages
+      flash[:board] = @board
+      redirect_to edit_board_path(flash[:board])
+    end
   end
 
   def destroy
@@ -41,7 +48,7 @@ class BoardsController < ApplicationController
   private
 
   def board_params
-    params.require(:board).permit(:name, :title, :body)
+    params.require(:board).permit(:name, :title, :body, tag_ids: [])
   end
 
   def set_target_board
